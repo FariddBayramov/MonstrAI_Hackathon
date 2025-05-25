@@ -32,7 +32,7 @@ Projede yer alan Jupyter Notebook dosyalarını gerekli CSV dosyalarını oluşt
    Excel'de `latitude` ve `longitude` sütunlarının veri tipleri float olacak şekilde düzenlendi. Gereksiz sütunlar kaldırıldı.
 
 # Notebook'lar
-
+Not: Notebook'lar çalıştırılmadan önce, `Polygons` klösörünün ve Mobility Data paraquet verisinin, `data` klasörüne manuel olarak eklenmesi gerekmektedir.
 ---
 
 ## 1. 99\_kisi\_id.ipynb
