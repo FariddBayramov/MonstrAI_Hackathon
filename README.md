@@ -1,16 +1,18 @@
-# MostrAI Hackathon
+# MostrAI Hackathon - Understanding Life Through Data and Personalization:
 
-## Takım Adı: Orion
+This project, developed within the scope of the Mapindata Hackathon, aimed to leverage data not just as numbers, but as a tool to understand people, cities, and life itself. Our goal was to determine a "wealth score" for individuals living in or passing through a given region, and to categorize these individuals into multiple "persona" groups that reflect their multifaceted behaviors.
 
-#### Yunus Ege Küçük | Farid Bayramov | Kuzey Sayın | Ertuğrul Tanrıcı
+By blending diverse datasets—from restaurant and hotel segments to mobile signal data, demographic information, and amenity areas—we didn't just focus on income levels. Instead, we revealed an individual's "life value" based on various dimensions such as access, consumption habits, mobility, and lifestyle preferences. This allowed us to capture multiple personality traits like "Pet Lover," "Office Explorer," or "Gourmet Follower" through data, ultimately creating a unique and dynamic profile for each person.
+
+Our project aims to be a valuable decision-support system across various fields, from smart city planning to target audience analysis, thanks to the insights we've gained.
 
 ---
 
-## Dosyalar
+## Files
 
-### Notebook dosyaları
+### Notebook files
 
-Projede yer alan Jupyter Notebook dosyalarını gerekli CSV dosyalarını oluşturmak için sırasıyla çalıştırınız:
+Run the Jupyter Notebook files in the project in order to create the necessary CSV files:
 
 1. `99_kisi_id.ipynb`
 2. `restoran_preprocessing.ipynb`
@@ -20,203 +22,209 @@ Projede yer alan Jupyter Notebook dosyalarını gerekli CSV dosyalarını oluşt
 6. `person3-rich_score.ipynb`
 7. `person4-persona.ipynb`
 
-### CSV dosyaları
+### CSV files
 
-&#x20;Manuel olarak Excel üzerinde veya Jupyter Notebook üzerinde düzenlenmiş dosyalar:
+&#x20;Files edited manually in Excel or Jupyter Notebook:
 
 1. `Clustered_Veteriner.csv`
 
-   Excel'de Mahalle ismine göre A B C olacak şekilde sınıflandırma yapıldı.
+   Classification was made in Excel as A B C according to the neighborhood name.
 2. `Kahve_New.csv`
 
-   Excel'de `latitude` ve `longitude` sütunlarının veri tipleri float olacak şekilde düzenlendi. Gereksiz sütunlar kaldırıldı.
+   In Excel, the data types of the `latitude` and `longitude` columns have been changed to float. Unnecessary columns have been removed.
 
-# Notebook'lar
-Not: Notebook'lar çalıştırılmadan önce, `Polygons` klösörünün ve Mobility Data paraquet verisinin, `data` klasörüne manuel olarak eklenmesi gerekmektedir.
+# Notebooks
+Note: Before running Notebooks, the `Polygons` folder and Mobility Data paraquet data must be manually added to the `data` folder.
 ---
 
 ## 1. 99\_kisi\_id.ipynb
 
-Bu not defteri, büyük hareket veri setindeki (MobilityDataMay2024.parquet) ilk 99 adet benzersiz `device_aid` değerini seçerek yeni bir DataFrame oluşturur.
+This notebook creates a new DataFrame by selecting the first 99 unique `device_aid` values ​​from the large mobility dataset (MobilityDataMay2024.parquet).
 
-99 adet id seçilmesinin sebebi DataFrame'i okuyunca RAM belleğin dolmasıdır.
+The reason why 99 IDs are selected is that the RAM memory fills up when the DataFrame is read.
 
-1. **Dask ve Pandas Yükleme**: `dask.dataframe` ve `pandas` içe aktarılır.
-2. **Veri Okuma ve Filtreleme**:
+1. **Installing Dask and Pandas**: `dask.dataframe` and `pandas` are imported.
+2. **Reading and Filtering Data**:
 
-   * Parquet dosyası Dask ile okunur.
-   * `device_aid` sütunundan benzersiz ID’ler alınır.
-   * İlk 99 ID seçilerek hareket verisi bu ID’ler için filtrelenir.
+   * Parquet file is read with Dask.
+   * Unique IDs are taken from the `device_aid` column.
+   * The first 99 IDs are selected and the motion data is filtered for these IDs.
 
 ---
 
 ## 2. restoran\_preprocessing.ipynb
 
-Bu not defteri, ham restoran verilerini okuyup temizleyerek analiz ve kümeleme için hazırlık yapar.
+This notebook reads and cleans the raw restaurant data to prepare it for analysis and clustering.
 
-1. **Kütüphaneleri Yükleme**: `pandas` ve `numpy` paketleri içe aktarılır.
-2. **Veri Okuma**: Excel formatındaki ana veri seti (`Hackathon_MainData.xlsx`) yüklenir.
-3. **Sütun Seçimi**: Analiz için gerekli sütunlar seçilerek yeni bir DataFrame (`df`) oluşturulur:
+1. **Loading Libraries**: Import the `pandas` and `numpy` packages.
+2. **Reading Data**: Load the main dataset (`Hackathon_MainData.xlsx`) in Excel format.
+3. **Column Selection**: Create a new DataFrame (`df`) by selecting the columns required for analysis:
 
-   * Enlem, Boylam, İlçe, Tür, Modern/Traditional/Hotel değerleri
-   * Ortalama Harcama Tutarı, Restoran Çeşidi
+   * Latitude, Longitude, District, Type, Modern/Traditional/Hotel values
+   * Average Spending Amount, Restaurant Type
    * Map Profile & Population Score, Mapin Segment.
-4. **Hatalı Değer Düzeltme**:
+     
+4. **Correcting Incorrect Values
 
-   * İlçe sütunundaki büyük harf ve Türkçe karakter eksik yazımlar düzeltilir.
-   * Satış kanalı isimlerindeki yazım hatası (`TRADİTİONAL`) giderilir.
-   * Restoran çeşidi 'Balik' → 'Balık' olarak güncellenir.
-5. **Kodlu Değerlerin Temizlenmesi**:
+   * The capital letters and Turkish character missing spellings in the district column are corrected.
+   * The spelling error (`TRADITIONAL`) in the sales channel names is corrected.
+   * The restaurant type is updated as 'Balik' → 'Balık'.
+5. **Clearing Coded Values**:
 
    * Modern (`D`), Traditional (`R`) ve Hotel (`H`) değerlerinden harfler çıkarılır.
-6. **Skor ve Koordinatların Formatlanması**:
+6. **Formatting Scores and Coordinates**:
 
-   * Enlem, Boylam, Map Profile/Population skorları stringten float formata çevrilir.
-   * Beş haneli sayılar binlik ölçeğe getirilecek şekilde 1000'e bölünür.
-7. **Ortalama Harcama Dönüşümü**:
+   * Latitude, Longitude, Map Profile/Population scores are converted from string to float format.
+   * Five-digit numbers are divided by 1000 to bring them to a thousandths scale.
+7. **Average Spend Conversion
 
-   * "10-20 TL" aralık değerleri ortalaması, "+30" gibi değerler alt sınır olarak sayıya çevrilir.
-8. **Eksik Değerlerin Doldurulması**:
+   *The average of the range values ​​"10-20 TL" and values ​​such as "+30" are converted into numbers as the lower limit.
+8. **Filling in Missing Values**:
 
-   * Modern, Traditional, Hotel sütunlarındaki `NaN` değerler 0 ile doldurulur.
-9. **Son Kontrol ve Kayıt**:
+   * `NaN` values ​​in Modern, Traditional, Hotel columns are filled with 0.
+9. **Final Check and Record**:
 
-   * Temizlenmiş DataFrame ekrana yazdırılır ve `MainData_updated.csv` dosyasına kaydedilir.
-10. **Sütun Listesi**:
+   * The cleaned DataFrame is printed to the screen and saved to the `MainData_updated.csv` file.
+10. **Column List**:
 
-* Oluşan sütunlar konsolda listelenir.
+* The resulting columns are listed in the console.
 
 ---
 
 ## 3. restoran\_cluster.ipynb
 
-Bu not defteri, birinci adımda temizlenen veriler üzerinde KMeans kümeleme analizi uygular ve restoranları harita üzerindeki kümelere ayırır.
+This notebook applies KMeans clustering analysis on the data cleaned in step one and separates the restaurants into clusters on the map.
 
-1. **Kütüphaneleri ve Veriyi Yükleme**: `pandas`, `sklearn.cluster.KMeans`, `matplotlib` ve `seaborn` içe aktarılır; `MainData_updated.csv` okunur.
-2. **Eksik Ortalama Harcama Doldurma**:
+1. **Loading Libraries and Data**: Import `pandas`, `sklearn.cluster.KMeans`, `matplotlib` and `seaborn`; Read `MainData_updated.csv`.
 
-   * Boş `Ortalama Harcama Tutarı` değerleri sütunun ortalama değeriyle doldurulur.
-3. **NaN Satır Silme**:
+2. **Filling in Missing Average Spending**:
 
-   * `Map Profile Score` veya `Map Population Score` eksik olan satırlar kaldırılır.
-4. **One-Hot Encoding**:
+   * Empty `Ortalama Harcama Tutarı` values ​​are filled with the average value of the column.
+3. **NaN Row Removal**:
 
-   * İlçe sütunu, `pd.get_dummies` ile ikili sütunlara dönüştürülür.
-5. **Gereksiz Sütun Kaldırma**:
+* Rows with missing `Map Profile Score` or `Map Population Score` are removed.
+4. 4. **One-Hot Encoding**:
 
-   * `Mapin Segment` ve `Hotel Değeri` sütunları silinir.
-6. **Restoran Çeşidi Birleştirme ve Temizleme**:
+* İlçe column is converted to binary columns with `pd.get_dummies`.
+5. **Remove Unnecessary Columns**:
 
-   * Az örneklem içeren kategoriler birleştirilir veya silinir.
-7. **Satış Kanalı Filtresi**:
+   * The columns `Mapin Segment` and `Hotel Value` are deleted.
+6. **Restaurant Type Assembly and Cleaning**:
 
-   * `Tür` sütununda `Hotel` değerleri çıkarılır.
-8. **0 Skorlu Kayıtların Kaldırılması**:
+   * Categories with few samples are merged or deleted..
+7. **Sales Channel Filter**:
 
-   * `Map Profile Score == 0` olan satırlar ayıklanır.
-9. **Öznitelik Seçimi ve Normalizasyon**:
+   * `Hotel` values ​​are removed from the `Tür` column
+8. **Removal of 0 Scored Records**:
 
-   * `Ortalama Harcama Tutarı` ve `Map Profile Score` seçilir, `StandardScaler` ile ölçeklendirilir.
-10. **KMeans Uygulaması**:
+   * Rows with `Map Profile Score == 0` are extracted.
+9. **Feature Selection and Normalization**:
 
-    * `n_clusters=3` ile kümeler hesaplanır.
-11. **Görselleştirme**:
+   * `Ortalama Harcama Tutarı` and `Map Profile Score` are selected and scaled with `StandardScaler`.
+10. **KMeans**:
 
-    * Enlem-Boylam scatter plot ile kümeler renklendirilir.
-12. **Elbow Yöntemi Analizi**:
+    * Clusters are calculated with `n_clusters=3`.
+11. **Visualization**:
 
-    * 1–10 arası k değerlerinde inertia hesaplanır.
-13. **Küme Etiketleme ve Kayıt**:
+    * Clusters are coloured with latitude-longitude scatter plot.
+12. **Elbow Method Analysis**:
 
-    * Kümeler "Zengin Restoran", "Orta Halli Restoran", "Ucuz Restoran" olarak isimlendirilir ve `Clustered_Restaurants.csv` kaydedilir.
+    * Inertia is calculated for k values between 1-10.**Elbow Method Analysis**:
+    * Inertia is calculated for k values between 1-10.
+13. **Cluster Labelling and Registration**:
+
+    * The clusters are labelled as "Zengin Restoran", "Orta Halli Restoran", "Ucuz Restoran" and `Clustered_Restaurants.csv` is saved.
 
 ---
 
 ## 4. person1-dateplace.ipynb
 
-Bu not defteri, seçilmiş 99 cihazın hareket verilerini farklı POI türleriyle eşleştirir.
+This notebook matches the movement data of 99 selected devices with different POI types.
 
-1. **Kütüphaneler**: `dask.dataframe`, `pandas`, `numpy`, `sklearn.neighbors.BallTree`.
-2. **99 ID ile Filtreleme**:
+1. **Libraries**: `dask.dataframe`, `pandas`, `numpy`, `sklearn.neighbors.BallTree`.
+2. **Filter by 99 IDs**:
 
-   * `99_kisi_data.csv` kullanılarak hareket verisi yüklenir.
-3. **Zamanlama ve Konum İşleme**:
+   * Load movement data using `99_kisi_data.csv`.
+3. **Timing and Location Processing**:
 
-   * `timestamp` sütunu datetime’a çevrilir, `zaman_bolumu` eklenir.
-   * `horizontal_accuracy` ≤ 200 filtresi uygulanır.
-4. **Birincil Kayıtlar**:n
+   * Convert `timestamp` column to datetime, add `zaman_bolumu`.
+   * The filter `horizontal_accuracy` ≤ 200 is applied.
+4. **Primary Records**:n
 
-   * Her `device_aid`, `grid_id`, `date`, `zaman_bolumu` kombinasyonu için ilk kayıt seçilir.
-5. **Restoran/Veteriner/Kahveci Eşleştirme**:
+   * The first record is selected for each `device_aid`, `grid_id`, `date`, `zaman_bolumu` combination.
+5. **Restaurant/Veterinarian/Coffee Shop Pairing**:
 
-   * `Clustered_Restaurants.csv`, `Clustered_Veteriner.csv`, `Kahve_New.csv` ile BallTree/Haversine kullanılarak en yakın POI eşleştirmesi yapılır.
-6. **POI Türü Belirleme**:
+   * With `Clustered_Restaurants.csv`, `Clustered_Veteriner.csv`, `Kahve_New.csv` the closest POI is matched using BallTree/Haversine.
+6. **POI Type Determination**:
 
-   * `matched_*` sütunları işlenip, en yakın kategori seçilerek `Place` sütunu oluşturulur.
-7. **Sonuç**:
+   * The `matched_*` columns are processed and the `Place` column is created by selecting the closest category.
+7. **Result**:
 
-   * `id-date-zaman_bolumu-place.csv` dosyası kaydedilir.
+   * The file `id-date-zaman_bolumu-place.csv` is saved.
 
 ---
 
 ## 5. person2-favoriler-timecluster.ipynb
 
-Bu not defteri, her cihaz için ziyaret edilen mekan kategorilerini sınıflandırır, favori mekanları belirler ve zaman kümesi analizi yapar.
+For each device, this notebook classifies the categories of venues visited, identifies favourite venues and performs time-set analysis.
 
-1. **Veri Yükleme**: `id-date-zaman_bolumu-place.csv` okunur.
-2. **Kategori Sözlüğü**:
+1. **Data Upload**: Read `id-date-zaman_bolumu-place.csv`.
+2. **Category Glossary**:
 
-   * Anahtar kelimelere göre Hastane, Park, Market, Restoran vb. gruplar tanımlanır.
-3. **categorize Fonksiyonu**:
+   * Groups such as Hospital, Park, Market, Restaurant etc. are defined according to keywords.
+3. **categorize Function**:
 
-   * Mekan adı üzerinden kategori ataması yapılır.
-4. **Pivot Tablolar**:
+   * Category assignment is made over the venue name.
+4. **Pivot Tables**:
 
-   * Zaman dilimlerine göre (`zaman_pivot`) ve mekan kategorilerine göre (`mekan_pivot`) ziyaret sayıları hesaplanır.
-5. **Zaman Kümeleme**:
+   * By time zones (`zaman_pivot`) and by space categories (`mekan_pivot`) the number of visits is calculated.
+5. **Time Clustering**:
 
-   * Elbow yöntemi ile optimal k bulunur, KMeans ile `time_cluster` etiketlenir.
-6. **Favori Mekanlar**:
+   * The optimal k is found with the Elbow method, and `time_cluster` is labelled with KMeans.
+6. **Favourite Places**:
 
-   * Ziyaret oranına göre sık ziyaret edilen kategoriler `favoriler` listesinde saklanır.
+   * Frequently visited categories according to the visit rate are stored in the `favouriler` list.
 7. **CSV**:
 
-   * `id-favoriler-time_cluster.csv` kaydedilir.
+   * `id-favoriler-time_cluster.csv` is saved.
 
 ---
 
 ## 6. person3-rich\_score.ipynb
 
-Bu not defteri, cihazların oturduğu mahalle, ziyaret sayıları ve demografi bilgilerine göre bir "zenginlik skoru" (`rich_score`) hesaplar.
+This notebook calculates a "zenginlik skoru" (`rich_score`) based on the neighbourhood, number of visits and demographics of the devices.
 
-1. **Veri ve Demografi**:
+1. **Data and Demographics**:
 
-   * `id-favoriler-time_cluster.csv` ve `Ilce_Demografi.xlsx` yüklenir.
-2. **Gece Mahalle Analizi**:
+   * `id-favoriler-time_cluster.csv` and `Ilce_Demografi.xlsx` are uploaded.
+2. **Night Neighbourhood Analysis**:
 
-   * "gece" diliminde en çok bulunulan mahalle `oturdugu_mahalle` olarak seçilir.
-3. **Ziyaret Öznitelikleri**:
+   * "The neighbourhood most frequently visited during the "night" period is selected as `oturdugu_mahalle`.
+3. **Visit Attributes**:
 
-   * Restoran, lüks villa ve site ziyaret sayıları pivot ile hesaplanır.
-4. **Mahalle Seviyesi Eşleştirme**:
+   * Restaurant, luxury villa and site visit numbers are calculated with pivot.
+4. **Neighbourhood Level Matching**:
 
-   * Excel’den okunan mahalle seviyeleri (`A`, `B`, `C`) her cihaza eklenir.
-5. **Öznitelik Ölçeklendirme**:
+   * Neighbourhood levels (`A`, `B`, `C`) read from Excel are added to each device.
+5. **Attribute Scaling**:
 
-   * `StandardScaler` ve `MinMaxScaler` ile sayısal öznitelikler normalize edilir.
-6. **Rich Score Hesaplama**:
+   * With `StandardScaler` and `MinMaxScaler` the numerical attributes are normalised.
+6. **Rich Score Calculation**:
 
-   * Ağırlıklı katkı faktörleri (örn. villa ×0.35, restoran ×0.25, mahalle ×0.25) ile skorlar toplanır.
+   * Scores are summed with weighted contribution factors (e.g. villa ×0.35, restaurant ×0.25, neighbourhood ×0.25).
 7. **CSV**:
 
-   * `id-mahalle-rich_score.csv` oluşturulur.
+   * `id-mahalle-rich_score.csv` is created.
 
 ---
 
 ## 7. person4-persona.ipynb
 
-Bu not defteri, favoriler, zaman kümeleri ve zenginlik skorunu birleştirerek final persona veri setini oluşturur.
+This notebook combines favourites, time sets and wealth score to create the final persona dataset.
 
-1. **Veri Yükleme**: `id-favoriler-time_cluster.csv` ve `id-mahalle-rich_score.csv` okunur.
-2. **Birleştirme**: `pd.concat` ile eksenler birleştirilir.
-3. **Son CSV**: `final.csv` dosyası kaydedilerek süreç tamamlanır.
+1. **Data Upload**: Read `id-favoriler-time_cluster.csv` and `id-mahalle-rich_score.csv`.
+2. **Consolidation**: `Axes are concatenated with `pd.concat`.
+3. **Final CSV**: `final.csv` file is saved and the process is completed.
+
+![final_data](https://github.com/user-attachments/assets/f31043ee-6d7b-4c9d-8c83-f16ec3d833cd)
+
